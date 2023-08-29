@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renderizador de JSON</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #inputContainer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #renderButton {
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #3498db;
+        }
+
+        #jsonDataInput {
+            width: 400px;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #output {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .section {
+            background-color: #b0e0e6;
+            color: #000000;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            width: 100%;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            color: #000000;
+            text-align: center;
+        }
+
+        .task {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .task-title {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .task-html-description {
+            margin-bottom: 5px;
+        }
+
+        .task-links {
+            margin-top: 5px;
+        }
+
+        .task-links a {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="inputContainer">
+        <h1>Classroom - Saver</h1>
+        <textarea id="jsonDataInput" placeholder="Introdueix aquí el JSON"></textarea>
+        <br>
+        <button id="renderButton">Renderizar</button>
+    </div>
+    <div id="output"></div>
+
+    <script>
+        const renderButton = document.getElementById("renderButton");
+        const jsonDataInput = document.getElementById("jsonDataInput");
+        const outputDiv = document.getElementById("output");
+
+        renderButton.addEventListener("click", () => {
+            const jsonData = JSON.parse(jsonDataInput.value);
+            renderData(jsonData);
+        });
+
+        function renderData(jsonData) {
+            outputDiv.innerHTML = "";
+
+            const pastelColors = ['#ffd700', '#ffa07a', '#87cefa', '#98fb98', '#dda0dd', '#ffb6c1'];
+
+            jsonData.forEach((entry, index) => {
+                const sectionDiv = document.createElement("div");
+                sectionDiv.classList.add("section");
+                sectionDiv.style.backgroundColor = pastelColors[index % pastelColors.length];
+
+                const sectionTitle = document.createElement("div");
+                sectionTitle.classList.add("section-title");
+                sectionTitle.textContent = entry.tema;
+                sectionDiv.appendChild(sectionTitle);
+
+                entry.tasques.forEach(tasca => {
+                    const taskDiv = document.createElement("div");
+                    taskDiv.classList.add("task");
+
+                    const taskTitle = document.createElement("div");
+                    taskTitle.classList.add("task-title");
+                    taskTitle.textContent = tasca.tasca;
+                    taskDiv.appendChild(taskTitle);
+
+                    if (tasca.htmlDescription) {
+                        const taskHtmlDescription = document.createElement("div");
+                        taskHtmlDescription.classList.add("task-html-description");
+                        taskHtmlDescription.innerHTML = tasca.htmlDescription;
+                        taskDiv.appendChild(taskHtmlDescription);
+                    }
+
+                    if (tasca.links && tasca.links.length > 0) {
+                        const taskLinks = document.createElement("div");
+                        taskLinks.classList.add("task-links");
+                        tasca.links.forEach(link => {
+                            const linkElem = document.createElement("a");
+                            linkElem.href = link;
+                            linkElem.textContent = link;
+                            taskLinks.appendChild(linkElem);
+                        });
+                        taskDiv.appendChild(taskLinks);
+                    }
+
+                    sectionDiv.appendChild(taskDiv);
+                });
+
+                outputDiv.appendChild(sectionDiv);
+            });
+        }
+    </script>
+</body>
+</html>
