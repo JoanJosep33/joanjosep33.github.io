@@ -92,12 +92,24 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        #drop-zone {
+            width: 300px;
+            height: 100px;
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 100px;
+            font-size: 16px;
+            color: #3498db;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div id="inputContainer">
         <h1>Classroom - Saver</h1>
-        <textarea id="jsonDataInput" placeholder="Introdueix aquí el JSON"></textarea>
+        <div id="drop-zone">Arrastra el archivo JSON aquí</div>
         <br>
         <button id="renderButton">Renderizar</button>
     </div>
@@ -162,6 +174,37 @@
                 outputDiv.appendChild(sectionDiv);
             });
         }
+
+        // Agregar manejo de evento "drop" para el área de soltar
+        const dropZone = document.getElementById("drop-zone");
+
+        dropZone.addEventListener("drop", (event) => {
+            event.preventDefault();
+
+            const file = event.dataTransfer.files[0];
+            if (file.type === "application/json") {
+                const reader = new FileReader();
+
+                reader.onload = (event) => {
+                    const jsonContent = event.target.result;
+                    try {
+                        const jsonData = JSON.parse(jsonContent);
+                        // Renderizar el contenido JSON
+                        renderData(jsonData);
+                    } catch (error) {
+                        console.error("Error al analizar el archivo JSON:", error);
+                    }
+                };
+
+                reader.readAsText(file);
+            } else {
+                console.error("El archivo no es de tipo JSON.");
+            }
+        });
+
+        dropZone.addEventListener("dragover", (event) => {
+            event.preventDefault();
+        });
     </script>
 </body>
 </html>
