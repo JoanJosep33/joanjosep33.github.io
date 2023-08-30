@@ -1,10 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Renderizador de JSON</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
+        #header {
+    background-color: #3498db;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 5px;
+}
+
+#jsonFileName {
+    font-size: 24px;
+    margin: 0;
+    padding: 10px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
         body {
             font-family: 'Montserrat', sans-serif;
             margin: 0;
@@ -49,7 +67,8 @@
         }
 
         .section {
-            background-color: #b0e0e6;
+            background-color: #87cefa;
+            /* Color de fondo azul pastel */
             color: #000000;
             padding: 10px;
             margin: 10px 0;
@@ -65,6 +84,7 @@
             border-radius: 5px;
             color: #000000;
             text-align: center;
+            cursor: pointer;
         }
 
         .task {
@@ -78,10 +98,15 @@
         .task-title {
             font-size: 20px;
             margin-bottom: 5px;
+            background-color: #f5f5f5;
+            /* Cambiar el color de fondo a gris claro */
+            padding: 5px;
+            /* Agregar un poco de espacio interno */
         }
 
         .task-html-description {
             margin-bottom: 5px;
+            position: relative;
         }
 
         .task-links {
@@ -106,12 +131,17 @@
         }
     </style>
 </head>
+
 <body>
+   
     <div id="inputContainer">
         <h1>Classroom - Saver</h1>
         <div id="drop-zone">Arrastra el archivo JSON aquí</div>
         <br>
         <button id="renderButton">Renderizar</button>
+    </div>
+    <div id="header">
+        <h1 id="jsonFileName" style="display: none;"></h1>
     </div>
     <div id="output"></div>
 
@@ -125,10 +155,29 @@
             renderData(jsonData);
         });
 
-        function renderData(jsonData) {
+        function renderData(jsonData, fileName) {
+            const jsonFileName = document.getElementById("jsonFileName");
+    jsonFileName.textContent = `Clase: ${fileName.replace(/\.[^/.]+$/, "")}`;
+    jsonFileName.style.display = "block";
             outputDiv.innerHTML = "";
 
-            const pastelColors = ['#ffd700', '#ffa07a', '#87cefa', '#98fb98', '#dda0dd', '#ffb6c1'];
+            const pastelColors = [
+                '#87cefa', // Azul pastel
+                '#a8dadc', // Azul verdoso claro
+                '#bad4db', // Azul suave
+                '#c5e0e3', // Azul claro
+                '#d0e6e9', // Azul claro muy claro
+                '#b0e0e6', // Azul polvoriento (el color original)
+                '#98ddca', // Turquesa claro
+                '#6ab0a9', // Turquesa azulado
+                '#4d8f83', // Verde azulado profundo
+                '#2a5750', // Verde azulado oscuro
+                '#b5e7a0', // Verde pastel
+                '#e0f3db', // Verde claro
+                '#c1e1c5', // Verde suave
+                '#f7ebd3', // Amarillo pálido
+                '#f9dcc4'  // Melocotón suave
+            ];
 
             jsonData.forEach((entry, index) => {
                 const sectionDiv = document.createElement("div");
@@ -138,6 +187,7 @@
                 const sectionTitle = document.createElement("div");
                 sectionTitle.classList.add("section-title");
                 sectionTitle.textContent = entry.tema;
+
                 sectionDiv.appendChild(sectionTitle);
 
                 entry.tasques.forEach(tasca => {
@@ -152,20 +202,35 @@
                     if (tasca.htmlDescription) {
                         const taskHtmlDescription = document.createElement("div");
                         taskHtmlDescription.classList.add("task-html-description");
-                        taskHtmlDescription.innerHTML = tasca.htmlDescription;
+
+                        taskHtmlDescription.innerHTML = "<div style='margin-top:1rem; margin-bottom:1rem;'><span style='background:#b387fa; padding:0.25rem; border-radius:8px; color: white; '>Descripció</span></div>".concat(tasca.htmlDescription);
+
                         taskDiv.appendChild(taskHtmlDescription);
+
                     }
 
                     if (tasca.links && tasca.links.length > 0) {
-                        const taskLinks = document.createElement("div");
-                        taskLinks.classList.add("task-links");
+                        const linksSection = document.createElement("div");
+                        linksSection.classList.add("task-links-section");
+
+                        const linksTitle = document.createElement("div");
+                        linksTitle.classList.add("task-links-title");
+                        linksTitle.innerHTML = "<div style='margin-top:1rem;'><span style='background:salmon; padding:0.25rem; border-radius:8px; color: white; '>Links</span></div>";
+
+                        const linksList = document.createElement("ul");
+                        linksList.classList.add("task-links-list");
                         tasca.links.forEach(link => {
+                            const linkItem = document.createElement("li");
                             const linkElem = document.createElement("a");
                             linkElem.href = link;
                             linkElem.textContent = link;
-                            taskLinks.appendChild(linkElem);
+                            linkItem.appendChild(linkElem);
+                            linksList.appendChild(linkItem);
                         });
-                        taskDiv.appendChild(taskLinks);
+
+                        linksSection.appendChild(linksTitle);
+                        linksSection.appendChild(linksList);
+                        taskDiv.appendChild(linksSection);
                     }
 
                     sectionDiv.appendChild(taskDiv);
@@ -174,6 +239,8 @@
                 outputDiv.appendChild(sectionDiv);
             });
         }
+
+
 
         // Agregar manejo de evento "drop" para el área de soltar
         const dropZone = document.getElementById("drop-zone");
@@ -189,8 +256,8 @@
                     const jsonContent = event.target.result;
                     try {
                         const jsonData = JSON.parse(jsonContent);
-                        // Renderizar el contenido JSON
-                        renderData(jsonData);
+                        renderData(jsonData, file.name);
+
                     } catch (error) {
                         console.error("Error al analizar el archivo JSON:", error);
                     }
@@ -200,11 +267,15 @@
             } else {
                 console.error("El archivo no es de tipo JSON.");
             }
+            
         });
 
         dropZone.addEventListener("dragover", (event) => {
             event.preventDefault();
         });
+
+
     </script>
 </body>
+
 </html>
