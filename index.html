@@ -6,22 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Renderizador de JSON</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
 
     <style>
         #header {
-    background-color: #3498db;
-    color: #ffffff;
-    text-align: center;
-    border-radius: 5px;
-}
+            background-color: #3498db;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 5px;
+        }
 
-#jsonFileName {
-    font-size: 24px;
-    margin: 0;
-    padding: 10px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-}
+        #jsonFileName {
+            font-size: 24px;
+            margin: 0;
+            padding: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
 
         body {
             font-family: 'Montserrat', sans-serif;
@@ -119,7 +120,7 @@
         }
 
         #drop-zone {
-            width: 300px;
+            width: 500px;
             height: 100px;
             border: 2px dashed #3498db;
             border-radius: 5px;
@@ -129,26 +130,120 @@
             color: #3498db;
             cursor: pointer;
         }
+
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #3498db;
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .floating-button:hover {
+            background-color: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .section,
+        .task,
+        .task-title,
+        .task-html-description {
+            user-select: text;
+            /* Permite la selección de texto */
+        }
+
+
+
+
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin-bottom: 10px;
+            /* Agregar margen inferior */
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-content p {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
     </style>
 </head>
 
 <body>
-   
+
     <div id="inputContainer">
         <h1>Classroom - Saver</h1>
-        <div id="drop-zone">Arrastra el archivo JSON aquí</div>
+        <div id="drop-zone" onclick="selectFile()">
+            Arrastra el archivo JSON aquí o haz clic para seleccionar uno.
+        </div>
         <br>
         <button id="renderButton">Renderizar</button>
     </div>
     <div id="header">
         <h1 id="jsonFileName" style="display: none;"></h1>
     </div>
-    <div id="output"></div>
+    <!-- <div id="floatingButton" class="floating-button">
+        <i class="fas fa-download"></i>
+    </div>
 
+    <div id="loading-indicator" class="loading-indicator">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div> -->
+    <div id="output"></div>
+   
     <script>
+        // window.jsPDF = window.jspdf.jsPDF; // add this line of code
+
         const renderButton = document.getElementById("renderButton");
         const jsonDataInput = document.getElementById("jsonDataInput");
         const outputDiv = document.getElementById("output");
+
+
 
         renderButton.addEventListener("click", () => {
             const jsonData = JSON.parse(jsonDataInput.value);
@@ -157,8 +252,8 @@
 
         function renderData(jsonData, fileName) {
             const jsonFileName = document.getElementById("jsonFileName");
-    jsonFileName.textContent = `Clase: ${fileName.replace(/\.[^/.]+$/, "")}`;
-    jsonFileName.style.display = "block";
+            jsonFileName.textContent = `Clase: ${fileName.replace(/\.[^/.]+$/, "")}`;
+            jsonFileName.style.display = "block";
             outputDiv.innerHTML = "";
 
             const pastelColors = [
@@ -238,6 +333,7 @@
 
                 outputDiv.appendChild(sectionDiv);
             });
+
         }
 
 
@@ -267,13 +363,81 @@
             } else {
                 console.error("El archivo no es de tipo JSON.");
             }
-            
+
         });
 
         dropZone.addEventListener("dragover", (event) => {
             event.preventDefault();
         });
 
+        // document.getElementById("floatingButton").addEventListener("click", () => {
+        //     generatePDF();
+        // });
+
+        function selectFile() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/json';
+            fileInput.style.display = 'none';
+
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = (event) => {
+                        const jsonContent = event.target.result;
+                        try {
+                            const jsonData = JSON.parse(jsonContent);
+                            renderData(jsonData, file.name);
+                        } catch (error) {
+                            console.error('Error al analizar el archivo JSON:', error);
+                        }
+                    };
+
+                    reader.readAsText(file);
+                }
+            });
+
+            document.body.appendChild(fileInput);
+            fileInput.click();
+            document.body.removeChild(fileInput);
+        }
+        // async function generatePDF() {
+        //     const loadingIndicator = document.getElementById('loading-indicator');
+        //     const output = document.getElementById('output');
+
+        //     // Mostrar el indicador de carga
+        //     loadingIndicator.style.display = 'block';
+
+        //     const pdfOptions = {
+        //         margin: 10,
+        //         filename: 'rendered_page.pdf',
+        //         image: { type: 'jpeg', quality: 0.98 },
+        //         html2canvas: { scale: 2 },
+        //         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        //     };
+
+        //     try {
+        //         const pdf = await html2pdf().from(output).set(pdfOptions).toPdf();
+        //         const blob = new Blob([pdf], { type: 'application/pdf' });
+
+        //         const url = URL.createObjectURL(blob);
+        //         const a = document.createElement('a');
+        //         a.style.display = 'none';
+        //         a.href = url;
+        //         a.download = 'rendered_page.pdf';
+        //         document.body.appendChild(a);
+        //         a.click();
+        //         window.URL.revokeObjectURL(url);
+        //         document.body.removeChild(a);
+        //     } catch (error) {
+        //         console.error('Error al generar el PDF:', error);
+        //     }
+
+        //     // Ocultar el indicador de carga
+        //     loadingIndicator.style.display = 'none';
+        // }
 
     </script>
 </body>
