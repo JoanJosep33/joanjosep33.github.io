@@ -4,9 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Renderizador de JSON</title>
+    <title>Classroom Saver!</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"
+        integrity="sha384-NaWTHo/8YCBYJ59830LTz/P4aQZK1sS0SneOgAvhsIl3zBu8r9RevNg5lHCHAuQ/"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 
     <style>
         #header {
@@ -129,6 +133,7 @@
             font-size: 16px;
             color: #3498db;
             cursor: pointer;
+            margin: auto;
         }
 
         .floating-button {
@@ -148,11 +153,31 @@
             transition: background-color 0.3s, transform 0.3s;
         }
 
+        .floating-button2 {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #940e0e;
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
         .floating-button:hover {
             background-color: #2980b9;
             transform: scale(1.1);
         }
-
+        .floating-button2:hover {
+            background-color: #750a0a;
+            transform: scale(1.1);
+        }
         .section,
         .task,
         .task-title,
@@ -214,7 +239,9 @@
 <body>
 
     <div id="inputContainer">
-        <h1>Classroom - Saver</h1>
+        <img src="./logo.png" style="margin-top:1rem; width:150px; height:150px; border-radius:50%;">
+        <h2>¡La plataforma que te permite guardar con facilidad el contenido que has creado como docente en tu
+            Classroom!</h2>
         <div id="drop-zone" onclick="selectFile()">
             Arrastra el archivo JSON aquí o haz clic para seleccionar uno.
         </div>
@@ -235,15 +262,24 @@
         </div>
     </div> -->
     <div id="output"></div>
-   
+    <div id="buttonsContainer">
+        <div id="floatingButton" class="floating-button" title="Descargar HTML" onclick="downloadHTML()">
+            <i class="fas fa-download"></i>
+        </div>
+    
+        <div id="pdfButton" class="floating-button2" title="Descargar PDF" onclick="generatePDFUsingjsPDF()">
+            <i class="far fa-file-pdf"></i>
+        </div>
+    </div>
+    
     <script>
         // window.jsPDF = window.jspdf.jsPDF; // add this line of code
 
         const renderButton = document.getElementById("renderButton");
         const jsonDataInput = document.getElementById("jsonDataInput");
         const outputDiv = document.getElementById("output");
-
-
+        let nameclass;
+        let renderedData;
 
         renderButton.addEventListener("click", () => {
             const jsonData = JSON.parse(jsonDataInput.value);
@@ -253,6 +289,7 @@
         function renderData(jsonData, fileName) {
             const jsonFileName = document.getElementById("jsonFileName");
             jsonFileName.textContent = `Clase: ${fileName.replace(/\.[^/.]+$/, "")}`;
+            nameClass = fileName.replace(/\.[^/.]+$/, "");
             jsonFileName.style.display = "block";
             outputDiv.innerHTML = "";
 
@@ -333,6 +370,7 @@
 
                 outputDiv.appendChild(sectionDiv);
             });
+            renderedData = jsonData;
 
         }
 
@@ -403,42 +441,147 @@
             fileInput.click();
             document.body.removeChild(fileInput);
         }
-        // async function generatePDF() {
-        //     const loadingIndicator = document.getElementById('loading-indicator');
-        //     const output = document.getElementById('output');
 
-        //     // Mostrar el indicador de carga
-        //     loadingIndicator.style.display = 'block';
+        function downloadHTML() {
+            const outputDiv = document.getElementById("output");
+            const inputContainer = document.getElementById("inputContainer");
 
-        //     const pdfOptions = {
-        //         margin: 10,
-        //         filename: 'rendered_page.pdf',
-        //         image: { type: 'jpeg', quality: 0.98 },
-        //         html2canvas: { scale: 2 },
-        //         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        //     };
+            // Oculta la sección inputContainer
+            inputContainer.style.display = "none";
+            const buttonsContainer = document.getElementById("buttonsContainer");
+            buttonsContainer.style.display = "none";
+            const htmlContent = document.documentElement.outerHTML; // Obtiene todo el contenido HTML
+            const blob = new Blob([htmlContent], { type: 'text/html' }); // Crea un Blob con el contenido HTML
+            const url = URL.createObjectURL(blob); // Crea una URL para el Blob
 
-        //     try {
-        //         const pdf = await html2pdf().from(output).set(pdfOptions).toPdf();
-        //         const blob = new Blob([pdf], { type: 'application/pdf' });
+            const a = document.createElement('a'); // Crea un elemento de ancla
+            a.href = url; // Establece la URL del ancla como la URL del Blob
+            a.download = 'ClassroomSaver_'+nameClass+'.html'; // Establece el nombre del archivo a descargar
+            document.body.appendChild(a); // Agrega el ancla al cuerpo del documento
+            a.click(); // Simula un clic en el ancla para iniciar la descarga
+            document.body.removeChild(a); // Remueve el ancla después de la descarga
+            window.URL.revokeObjectURL(url); // Libera los recursos utilizados por la URL del Blob
 
-        //         const url = URL.createObjectURL(blob);
-        //         const a = document.createElement('a');
-        //         a.style.display = 'none';
-        //         a.href = url;
-        //         a.download = 'rendered_page.pdf';
-        //         document.body.appendChild(a);
-        //         a.click();
-        //         window.URL.revokeObjectURL(url);
-        //         document.body.removeChild(a);
-        //     } catch (error) {
-        //         console.error('Error al generar el PDF:', error);
-        //     }
+            // Vuelve a mostrar la sección inputContainer después de la descarga
+            inputContainer.style.display = "block";
+            buttonsContainer.style.display = "block";
+        }
+        function generatePDFUsingjsPDF() {
+            jsonData = renderedData;
+            const pdf = new jsPDF('p', 'mm', 'a4'); // Crear una instancia de jsPDF con formato A4
 
-        //     // Ocultar el indicador de carga
-        //     loadingIndicator.style.display = 'none';
-        // }
+            let currentY = 20;
+            const lineThickness = 0.5;
+            const lineColor = [169, 169, 169]; // Color de línea gris (RGB)
+            const taskPadding = 5;
+            const pageMargin = 20;
+            const lineHeight = 5;
+            const descriptionMargin = 3; // Margen entre título y descripción
 
+            const pastelColors = [
+                '#87cefa', '#a8dadc', '#bad4db', '#c5e0e3', '#d0e6e9', '#b0e0e6', '#98ddca', '#6ab0a9', '#4d8f83', '#2a5750',
+                '#b5e7a0', '#e0f3db', '#c1e1c5', '#f7ebd3', '#f9dcc4', '#f0c987', '#f3bc8e', '#f6ad88', '#f79489', '#f7727a'
+            ]; // Colores de fondo para las secciones
+
+            jsonData.forEach((entry, index) => {
+                if (index !== 0) {
+                    pdf.addPage();
+                    currentY = pageMargin;
+                }
+
+                const sectionTitle = entry.tema;
+                pdf.setFillColor(pastelColors[index % pastelColors.length]);
+                pdf.rect(0, currentY - 10, pdf.internal.pageSize.width, 25, 'F');
+                pdf.setFontSize(16);
+                pdf.setTextColor(255);
+                pdf.text(sectionTitle, pageMargin + 3, currentY);
+
+                currentY += 20;
+
+                entry.tasques.forEach(tasca => {
+                    const taskTitle = tasca.tasca;
+                    pdf.setFontSize(14);
+                    pdf.setTextColor(0, 0, 0);
+                    currentY += lineHeight + 5; // Margen superior añadido
+                    pdf.text(taskTitle, pageMargin, currentY);
+
+                    currentY += lineHeight + 3; // Separación adicional
+
+                    if (tasca.description || (tasca.links && tasca.links.length > 0)) {
+                        const taskHeight = lineHeight + pdf.getTextDimensions(taskTitle).h + taskPadding * 2;
+
+                        if (currentY + taskHeight > pdf.internal.pageSize.height - pageMargin) {
+                            pdf.addPage();
+                            currentY = pageMargin;
+                        }
+
+                        if (tasca.description) {
+                            pdf.setFontSize(12);
+                            pdf.setTextColor(0);
+                            pdf.setFontStyle('bold'); // Establecer negrita
+
+                            pdf.text('Descripción:', pageMargin + taskPadding, currentY + descriptionMargin);
+                            pdf.setFontStyle('normal'); // Volver al estilo normal
+
+                            const descriptionLines = pdf.splitTextToSize(tasca.description, pdf.internal.pageSize.width - 3 * pageMargin);
+                            const descriptionHeight = descriptionLines.length * lineHeight;
+
+                            pdf.setTextColor(0);
+                            pdf.setFontSize(10);
+
+                            descriptionLines.forEach(line => {
+                                pdf.text(line, pageMargin + taskPadding, currentY + lineHeight + descriptionMargin + 3);
+                                currentY += lineHeight;
+                            });
+
+                            currentY += taskPadding;
+                        }
+
+                        if (tasca.links && tasca.links.length > 0) {
+                            pdf.setFontSize(10);
+                            pdf.setTextColor(0);
+
+                            pdf.setFontStyle('bold'); // Establecer negrita
+                            pdf.text('Links:', pageMargin + taskPadding, currentY + 8);
+                            pdf.setFontStyle('normal'); // Volver al estilo normal
+
+                            const linksList = tasca.links.map(link => {
+                                return '- ' + link;
+                            }).join('\n');
+
+                            const linksLines = pdf.splitTextToSize(linksList, pdf.internal.pageSize.width - 2 * pageMargin);
+
+                            const linksTextHeight = pdf.getTextDimensions('Links:').h;
+                            currentY += linksTextHeight;
+
+                            pdf.setFontSize(10);
+                            pdf.setTextColor(0, 0, 255);
+
+                            linksLines.forEach(linkLine => {
+                                pdf.text(linkLine, pageMargin, currentY + 11);
+                                currentY += lineHeight;
+                            });
+
+                            currentY += taskPadding; // Espacio después de los enlaces
+                        }
+
+                        currentY += lineHeight; // Espacio entre tareas
+                    } else {
+                        currentY += lineHeight; // Espacio entre tareas
+                    }
+
+                    // Dibujar línea discontinua debajo de la tarea
+                    pdf.setLineWidth(lineThickness);
+                    pdf.setDrawColor(lineColor[0], lineColor[1], lineColor[2]);
+                    pdf.setLineDash([2, 2]); // Línea discontinua
+                    pdf.line(pageMargin, currentY, pdf.internal.pageSize.width - pageMargin, currentY);
+                    pdf.setLineDash(); // Restaurar a línea sólida
+                    currentY += lineHeight;
+                });
+            });
+
+            pdf.save('ClassroomSaver_'+nameClass+'.pdf'); // Descargar el PDF
+        }
     </script>
 </body>
 
